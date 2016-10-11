@@ -33,10 +33,13 @@ class Design(object):
         self.targets = targets
         self.compete = compete
 
-    def _read_pdb(self):
+    def _parse_targets(self):
         """ 
-        Reads PDB structure
+        Parse target regions for modelling
 
 
         """
+        if self.targets is None:
+            pass
+
 

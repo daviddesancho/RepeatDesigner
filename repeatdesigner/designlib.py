@@ -6,18 +6,18 @@ This file is part of the RepeatDesigner package
 """
 import numpy as np
 
-from modeller import *
-from modeller.optimizers import molecular_dynamics, conjugate_gradients
-from modeller.automodel import autosched
+import modeller
+#from modeller.optimizers import molecular_dynamics, conjugate_gradients
+#from modeller.automodel import autosched
 
 def modeller_main():
     """ 
     Basic environment definitions for MODELLER
 
     """
-    log.none()
+    modeller.log.none()
     # Set a different value for rand_seed to get a different final model
-    env = environ(rand_seed=-np.random.randint(0,100000))
+    env = modeller.environ(rand_seed=-np.random.randint(0,100000))
     env.io.hetatm = True
     #soft sphere potential
     env.edat.dynamic_sphere=False
@@ -44,4 +44,4 @@ def model_worker(name=None):
 
     """
     env = modeller_main()
-    mdl = model(env, file=name)
+    mdl = modeller.model(env, file=name)

@@ -55,6 +55,4 @@ class Design(object):
 
         """
         results = designlib.model_worker(name=self.name)
-
         return results
-

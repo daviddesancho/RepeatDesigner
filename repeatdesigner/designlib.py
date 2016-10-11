@@ -45,3 +45,4 @@ def model_worker(name=None):
     """
     env = modeller_main()
     mdl = modeller.model(env, file=name)
+    return mdl

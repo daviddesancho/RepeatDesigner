@@ -16,7 +16,7 @@ class Design(object):
 
 
     """
-    def __init__(self, name=None, pdb=None, targets=None, compete=None):
+    def __init__(self, pdb=None, targets=None, compete=None):
         """
         Parameters
         ----------
@@ -55,4 +55,6 @@ class Design(object):
 
         """
         results = designlib.model_worker(name=self.name)
+
+        return results
 

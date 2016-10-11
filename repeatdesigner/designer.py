@@ -4,6 +4,7 @@ This file is part of the RepeatDesigner package
 
 
 """
+import designlib
 
 class Design(object):
     """
@@ -15,7 +16,7 @@ class Design(object):
 
 
     """
-    def __init__(self, pdb=None, targets=None, compete=None):
+    def __init__(self, name=None, pdb=None, targets=None, compete=None):
         """
         Parameters
         ----------
@@ -30,8 +31,14 @@ class Design(object):
 
         """
         self.pdb = pdb
+        self.name = self._pdb_name()
         self.targets = targets
         self.compete = compete
+
+    def _pdb_name(self):
+        ie = self.pdb.rfind('.pdb')
+        return self.pdb[:ie]
+
 
     def _parse_targets(self):
         """ 
@@ -42,4 +49,10 @@ class Design(object):
         if self.targets is None:
             pass
 
+    def launch_model(self):
+        """
+        Launches external optimization of defined models.
+
+        """
+        results = designlib.model_worker(name=self.name)
 

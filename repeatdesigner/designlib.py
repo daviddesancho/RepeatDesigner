@@ -125,7 +125,7 @@ def do_mc(env, mdl, len_mc=10, beta=1.):
 #            mdl.write(file=modelname + "_run%s"%run + ".pdb")
             break
 
-def model_worker(name=None):
+def model_mc_worker(name=None, beta = None, len_mc = None):
     """
     Simple modelling worker function
 
@@ -133,6 +133,14 @@ def model_worker(name=None):
     ----------
     name : str
         Name of file used as template.
+
+    
+    beta : float
+        Inverse temperature.
+
+
+    len_mc : int
+        length of MC run.
 
     """
     env = modeller_main()
@@ -142,8 +150,6 @@ def model_worker(name=None):
     mdl.write(file='data/initial.pdb') # save initial state
    
     # setup MC 
-    beta = 1./50 # inverse temperature
-    len_mc = 100 # length of MC run
     n = 0
     naccept = 0
     ener_prev = ener0

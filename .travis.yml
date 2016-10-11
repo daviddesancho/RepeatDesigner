@@ -13,5 +13,3 @@ script:
     - rundir=$HOME
     - cd $rundir
     - nosetests -v --with-coverage
-Contact GitHub API Training Shop Blog About
-

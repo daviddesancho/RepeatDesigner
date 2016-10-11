@@ -1,0 +1,17 @@
+language: python
+python:
+    - 2.7
+
+travis: 
+    - master
+
+install:
+    - python setup.py develop 
+
+script:
+  # avoid running in the checkout directory so nose finds built modules..
+    - rundir=$HOME
+    - cd $rundir
+    - nosetests -v --with-coverage
+Contact GitHub API Training Shop Blog About
+

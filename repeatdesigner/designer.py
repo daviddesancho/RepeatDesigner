@@ -45,7 +45,6 @@ class Design(object):
         ie = self.pdb.rfind('.pdb')
         return self.pdb[:ie]
 
-
     def _parse_targets(self):
         """ 
         Parse target regions for modelling
@@ -68,13 +67,10 @@ class MonteCarlo(object):
 
     """
 
-    def __init__(self, design, nruns=1, len_mc=100, beta=1.):
+    def __init__(self, nruns=1, len_mc=10, beta=1.):
         """
         Parameters
         ----------
-        design : object
-            Instance of design class.
-
         len_mc : int
             Length of optimization
 
@@ -82,8 +78,24 @@ class MonteCarlo(object):
             Inverse temperature.
 
         """
-        self.design = design
         self.nruns = nruns
         self.len_mc = len_mc
         self.beta = beta
-    return results
+
+
+def run_mc(design, mc):
+    """
+    Parallel MC run generator
+
+    Parameters
+    ----------
+    design : object
+        An instance of the Design class.
+
+    mc : object
+        An instance of the MonteCarlo class.
+
+    """
+
+    mdl_final, ener_mc = designlib.model_mc_worker(design.name, beta=mc.beta, len_mc=mc.len_mc)
+    return mdl_final, ener_mc

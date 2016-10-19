@@ -10,11 +10,16 @@ class TestBasic(unittest.TestCase):
         villin_des = rd.Design(pdb="pdbs/1vii.pdb")
         self.assertEqual(villin_des.name, "pdbs/1vii")
 
+    def test_sequence(self):
+        villin_des = rd.Design(pdb="pdbs/1vii.pdb")
+        self.assertEqual(villin_des.seq, "MLSDEDFKAVFGMTRSAFANLPLWKQQNLKKEKGLF")
+
     def test_targets(self):
         villin_des = rd.Design(pdb="pdbs/1vii.pdb")
         self.assertEqual(villin_des.targets, None)
 
     def test_targets_high(self):
+
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ import designlib
 
 class Design(object):
     """
-    A class with everything necessary to define a protein repeat design.
+    A class with everything necessary to define a protein design.
 
     Attributes
     ----------
@@ -22,7 +22,7 @@ class Design(object):
 
     """
 
-    def __init__(self, pdb=None, targets=None, compete=None):
+    def __init__(self, pdb=None, targets=None):
         """
         Parameters
         ----------
@@ -32,8 +32,6 @@ class Design(object):
         targets : list
             Residues to mutate in order to improve global energy.
 
-        compete : list
-            Lists of residues for negative design.
 
         """
         self.pdb = pdb
@@ -53,6 +51,38 @@ class Design(object):
         """
         if self.targets is None:
             pass
+
+
+class Repeat(Design):
+    """
+    A class with everything necessary to define a protein repeat design
+
+    Attributes
+    ----------
+    repeats     The regions corresponding to protein repeats
+
+    """
+    def __init__(self, pdb=None, targets=None, repeats=None):
+        """
+        Parameters
+        ----------
+        compete : list
+            Lists of residues for negative design.
+        """
+        Design.__init__(self, pdb=pdb, targets=targets)
+        self.repeats = _parse_repeats(repeats)
+
+    def _parse_repeats(repeats)
+        """ 
+        Checks whether repeats are same length and sequence.
+        
+        Parameters
+        ----------
+        repeats : list
+            List of lists containing repeat indexes
+
+        """
+        return repeats
 
 class MonteCarlo(object):
     """

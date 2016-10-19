@@ -1,5 +1,15 @@
+"""
+
+This file is part of the RepeatDesigner package.
+
+Much of the code has been adapted from Modeller's mutate_model script.
+https://salilab.org/modeller/8v0/examples/commands/mutate_model.py
+
+"""
+import os
+import numpy as np
 import modeller
-import modeller.automodel	
+import modeller.automodel
 import modeller.optimizers
 
 def modeller_main():
@@ -24,6 +34,52 @@ def modeller_main():
     # Read customized CHARMM parameter library with phosphoserines (or standard one)
     env.libs.parameters.read(file='$(LIB)/par.lib')
     return env
+
+def get_model(env, file=None):
+    """ 
+    Generate model using Modeller
+
+    """
+    return modeller.model(env, file=file)
+
+def get_selection(mdl, sel=None):
+    """
+    Generate selection
+
+    """
+    if not sel:
+        return modeller.selection(mdl)
+    else:
+        pass
+
+def get_energy(selection):
+    """
+    Calculates DOPE energy
+
+    Parameters
+    ----------
+    selection : object
+        Modeller selection for energy calculation.
+
+    Returns
+    -------
+    float
+        DOPE energy value.
+
+    """
+    return selection.assess_dope()
+
+def write_model(mdl, file=None):
+    """
+    Writes model to file
+
+    Parameters
+    ----------
+    file : str
+        The output file.
+
+    """
+    mdl.write(file)
 
 def mutate_model(env, name, mdl1, rp, rt):
     """
@@ -115,7 +171,7 @@ def mutate_model(env, name, mdl1, rp, rt):
     #mdl1.write(file=name+rt+rp+'.pdb')
 
     #delete the temporary file
-    os.remove(name+rt+"%s"%rp+'.tmp')
+    #os.remove(name+rt+"%s"%rp+'.tmp')
     return mdl1
 
 
@@ -140,7 +196,6 @@ def optimize(atmsel, sched):
     cg = modeller.optimizers.conjugate_gradients()
     cg.optimize(atmsel, max_iterations=200, min_atom_shift=0.001)
 
-
 def refine(atmsel):
     """ Molecular dynamics """
     # at T=1000, max_atom_shift for 4fs is cca 0.15 A.
@@ -154,20 +209,3 @@ def refine(atmsel):
             md.optimize(atmsel, init_velocities=init_vel, temperature=temp,
                          max_iterations=its, equilibrate=equil)
             init_vel = False
-
-def energy(selection):
-    """
-    Calculates DOPE energy
-
-    Parameters
-    ----------
-    selection :
-        Modeller selection for energy calculation.
-
-    Returns
-    -------
-    float
-        DOPE energy value.
-
-    """
-    return selection.assess_dope()

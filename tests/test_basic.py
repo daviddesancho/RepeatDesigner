@@ -1,19 +1,20 @@
 import unittest
-import coverage
 from repeatdesigner import designer as rd
 
-class TestLoad(unittest.TestCase):
-    def setUp(self):
+class TestBasic(unittest.TestCase):
+    def test_pdb(self):
         villin_des = rd.Design(pdb="pdbs/1vii.pdb")
-        pass
+        self.assertEqual(villin_des.pdb, "pdbs/1vii.pdb")
 
     def test_name(self):
         villin_des = rd.Design(pdb="pdbs/1vii.pdb")
-        self.assertEqual(villin_des.pdb, "pdbs/1vii.pdb")
+        self.assertEqual(villin_des.name, "pdbs/1vii")
 
     def test_targets(self):
         villin_des = rd.Design(pdb="pdbs/1vii.pdb")
         self.assertEqual(villin_des.targets, None)
+
+    def test_targets_high(self):
 
 
 if __name__ == '__main__':

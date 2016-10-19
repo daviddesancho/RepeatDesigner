@@ -4,6 +4,7 @@ This file is part of the RepeatDesigner package
 
 
 """
+import os
 import sys
 import numpy as np
 import random
@@ -69,8 +70,8 @@ def model_mc_worker(mc_input):
         
         # build model for actual mutation
         try:
-            mdl = mdlib.mutate_model(env, pdb, mdl, rp-1, rt)
-            mdlib.write_model(mdl,file='data/mutant%g.pdb'%run)
+            mdl = mdlib.mutate_model(env, pdb, "data/mut%g_"%run , mdl, rp-1, rt)
+            mdlib.write_model(mdl, file='data/mutant%g.pdb'%run)
             s = mdlib.get_selection(mdl)
             ener_mut = mdlib.get_energy(s)
 
@@ -102,6 +103,7 @@ def model_mc_worker(mc_input):
                 current = 'data/mutant%g.pdb'%run
                 naccept +=1
                 contribs = [ener] #, ener_mut, ener_ab, ener_ba]
+                ener_prev = ener
             else:
                 dener = ener - ener_prev
                 if np.exp(-beta*dener) > np.random.random():
@@ -124,7 +126,9 @@ def model_mc_worker(mc_input):
         if n >= len_mc:
 #            ener_cum.append(energy)
             mdl = mdlib.get_model(env, file=current)
-#            mdl.write(file=name + "_run%s"%run + ".pdb")
+            mdlib.write_model(mdl, file="data/final_run%s"%run + ".pdb")
+            os.remove('data/old%g.pdb'%run)
+            os.remove('data/mutant%g.pdb'%run)
             break
     sys.stdout = nb_stdout # redirect output    
-    return mdl, ener_mc
+    return ener_mc

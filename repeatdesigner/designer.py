@@ -176,8 +176,9 @@ class Optimizer(object):
         #    results.append(designlib.model_mc_worker(input_des[x]))
 
         # Parse results
+        parser = Bio.PDB.PDBParser()
         for x in range(self.nruns):
-            mdl, ener_mc = results[x]
+            ener_mc = results[x]
             self.models[x] = {}
-            self.models[x]['model'] = mdl
+            self.models[x]['model'] = parser.get_structure("model%g"%x, "data/final_run%s.pdb"%x)
             self.models[x]['score'] = ener_mc       

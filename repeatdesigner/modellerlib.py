@@ -81,7 +81,7 @@ def write_model(mdl, file=None):
     """
     mdl.write(file)
 
-def mutate_model(env, name, mdl1, rp, rt):
+def mutate_model(env, pdb, name, mdl1, rp, rt):
     """
     Mutates Modeller protein model
     
@@ -101,7 +101,7 @@ def mutate_model(env, name, mdl1, rp, rt):
     chain = "A"
     # Read the original PDB file and copy its sequence to the alignment array:
     ali = modeller.alignment(env)
-    ali.append_model(mdl1, atom_files=name, align_codes=name)
+    ali.append_model(mdl1, atom_files=pdb, align_codes=pdb)
 
     #set up the mutate residue selection segment
     s = modeller.selection(mdl1.chains[chain].residues[int(rp)])
@@ -109,7 +109,7 @@ def mutate_model(env, name, mdl1, rp, rt):
     #perform the mutate residue operation
     s.mutate(residue_type=rt)
     #get two copies of the sequence.  A modeller trick to get things set up
-    ali.append_model(mdl1, align_codes=name)
+    ali.append_model(mdl1, align_codes=pdb)
 
     # Generate molecular topology for mutant
     mdl1.clear_topology()
@@ -125,7 +125,7 @@ def mutate_model(env, name, mdl1, rp, rt):
     mdl1.build(initialize_xyz=False, build_method='INTERNAL_COORDINATES')
 
     #yes model_copy is the same file as model.  It's a modeller trick.
-    mdl2 = modeller.model(env, file=name)
+    mdl2 = modeller.model(env, file=pdb)
 
     #required to do a transfer_res_numb
     #ali.append_model(mdl2, atom_files=name, align_codes=name)
@@ -171,9 +171,8 @@ def mutate_model(env, name, mdl1, rp, rt):
     #mdl1.write(file=name+rt+rp+'.pdb')
 
     #delete the temporary file
-    #os.remove(name+rt+"%s"%rp+'.tmp')
+    os.remove(name+rt+"%s"%rp+'.tmp')
     return mdl1
-
 
 def make_restraints(mdl, aln):
     """Use homologs and dihedral library for dihedral angle restraints """

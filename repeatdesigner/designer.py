@@ -37,7 +37,6 @@ class Design(object):
         self.pdb = pdb
         self.name = self._pdb_name()
         self.targets = targets
-        self.compete = compete
 
     def _pdb_name(self):
         ie = self.pdb.rfind('.pdb')
@@ -72,7 +71,7 @@ class Repeat(Design):
         Design.__init__(self, pdb=pdb, targets=targets)
         self.repeats = _parse_repeats(repeats)
 
-    def _parse_repeats(repeats)
+    def _parse_repeats(repeats):
         """ 
         Checks whether repeats are same length and sequence.
         

@@ -16,8 +16,7 @@ class TestBasic(unittest.TestCase):
 
     def test_targets(self):
         villin_des = rd.Design(pdb="pdbs/1vii.pdb")
-        self.assertEqual(villin_des.targets, None)
-
+        self.assertEqual(villin_des.targets, range(36))
 
 if __name__ == '__main__':
     unittest.main()

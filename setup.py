@@ -18,7 +18,7 @@ setup(
 		license='GNU Lesser General Public License',
 		packages=find_packages(),
                 install_requires=[
-                    'numpy', 'matplotlib', 'biopython', 'seaborn',
+                    'numpy', 'matplotlib', 'biopython', 'seaborn', 'cython',
                     ],
 		keywords= " protein repeat",
 		long_description=read('README.md'),

@@ -46,7 +46,7 @@ class Design(object):
         print " .. name : %s"%self.name
         print " .. file : %s"%self.pdb
         print " .. sequence : %s"%self.seq
-        print " .. target residues : ",targets
+        print " .. target residues : ",self.targets
 
     def _pdb_name(self):
         ie = self.pdb.rfind('.pdb')
@@ -110,17 +110,25 @@ class Repeat(Design):
             Lists of residues for negative design.
         """
         Design.__init__(self, pdb=pdb, targets=targets)
-        self.repeats = _parse_repeats(repeats)
+        self.repeats = self._parse_repeats(repeats)
 
-    def _parse_repeats(repeats):
+    def _parse_repeats(self, repeats):
         """ Checks whether repeats are same length and sequence.
         
         Parameters
         ----------
         repeats : list
-            List of lists containing repeat indexes
+            List of tuples containing first and last residue numbers for repeats
 
         """
+        rep_list = [self.seq[r[0]:r[1]] for r in repeats]
+        numreps = len(rep_list)
+        for i in range(numreps-1):
+            try: 
+                assert rep_list[i] == rep_list[i+1]
+            except AssertionError:
+                raise AssertionError (" Repeat sequences are not equal:\n    %s\n    %s"\
+                    %(rep_list[i], rep_list[i+1]))
         return repeats
 
 class Optimizer(object):

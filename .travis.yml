@@ -5,6 +5,9 @@ python:
 travis: 
     - master
 
+before_install:
+    - gem install coveralls-lcov
+
 install:
     - python setup.py develop 
 
@@ -12,4 +15,4 @@ script:
   # avoid running in the checkout directory so nose finds built modules..
     - rundir=$HOME
     - cd $rundir
-    - nosetests -v --with-coverage
+    - nosetests -v --with-coverage repeatdesign

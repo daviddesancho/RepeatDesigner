@@ -9,8 +9,7 @@ A library for designing repeat proteins
 Dependencies
 ------------
 
-* BioPython
-* NumPy
+* BioPython - http://biopython.org/
 * Modeller - http://salilab.org/modeller/
 * Seaborn - https://github.com/mwaskom/seaborn
 

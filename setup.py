@@ -17,6 +17,9 @@ setup(
 		author_email='daviddesancho.at.gmail.com',
 		license='GNU Lesser General Public License',
 		packages=find_packages(),
+                install_requires=[
+                    'numpy', 'matplotlib', 'biopython', 'modeller', 'seaborn',
+                    ],
 		keywords= " protein repeat",
 		long_description=read('README.md'),
 		classifiers = ["""\

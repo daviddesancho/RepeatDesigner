@@ -16,11 +16,11 @@ class TestRepeatBasic(unittest.TestCase):
         self.assertEqual(tpr_des.name, os.path.join(DATA_DIR,"3atb"))
 
     def test_sequence(self):
-        tpr_des = rd.Design(pdb="repeatdesigner/tests/pdbs/3atb.pdb")
+        tpr_des = rd.Design(pdb=filename)
         self.assertEqual(tpr_des.seq, "NSAEAWYNLGNAYYKQGDYDEAIEYYQKALELDPNNAEAWYNLGNAYYKQGDYDEAIEYYQKALELDPNNAEAWYNLGNAYYKQGDYDEAIEYYQKALELDPNNAEAKQDLGNAKQKQG")
 
     def test_targets(self):
-        tpr_des = rd.Design(pdb="repeatdesigner/tests/pdbs/3atb.pdb")
+        tpr_des = rd.Design(pdb=filename)
         self.assertEqual(tpr_des.targets, range(119))
 
 #    def test_repeats(self):

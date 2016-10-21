@@ -53,7 +53,8 @@ class Design(object):
         return self.pdb[:ie]
 
     def _read_pdb(self):
-        """ Reads PDB file.
+        """ 
+        Reads PDB file.
 
         Returns 
         -------
@@ -113,7 +114,8 @@ class Repeat(Design):
         self.repeats = self._parse_repeats(repeats)
 
     def _parse_repeats(self, repeats):
-        """ Checks whether repeats are same length and sequence.
+        """ 
+        Checks whether repeats are same length and sequence.
         
         Parameters
         ----------
@@ -136,14 +138,17 @@ class Optimizer(object):
 
     Attributes
     ----------
+    nruns       The number of runs.
+
     len_mc      The length of the optimization.
 
-    beta        The inverse temperature for simulated annealing
+    beta        The inverse temperature for simulated annealing.
 
+    energy      The energy to optimize.
 
     """
 
-    def __init__(self, design, nruns=1, len_mc=10, beta=1.):
+    def __init__(self, design, nruns=1, len_mc=10, beta=1., energy="global"):
         """
         Parameters
         ----------
@@ -156,15 +161,27 @@ class Optimizer(object):
         beta : float
             Inverse temperature.
 
+        energy : str
+            The type of energy function we want to optimize. Possibilities
+            are "global" and "compete".
+
+        models : dict
+            The models resulting from the optimization, including a model 
+            structure and energy contributions.
+
         """
         self.design = design
         self.nruns = nruns
         self.len_mc = len_mc
         self.beta = beta
         self.models = {}
+        self.energy = energy 
 
     def run_mc(self):
         """ Parallel MC run generator
+
+        Generates multiprocessing pool and passes everything to
+        worker.
     
         """
         #  Multiprocessing options
@@ -176,7 +193,8 @@ class Optimizer(object):
 
         # Do it!
         results = []
-        input_des = [[x, [self.design.name, self.beta, self.len_mc, self.design.targets]] for x in range(self.nruns)]
+        input_des = [[x, [self.design, self.beta, self.len_mc, self.energy]] \
+                for x in range(self.nruns)]
         results = pool.map(designlib.model_mc_worker, input_des)
         pool.close()
         pool.join()
@@ -189,4 +207,4 @@ class Optimizer(object):
             ener_mc = results[x]
             self.models[x] = {}
             self.models[x]['model'] = parser.get_structure("model%g"%x, "data/final_run%s.pdb"%x)
-            self.models[x]['score'] = ener_mc       
+            self.models[x]['score'] = ener_mc

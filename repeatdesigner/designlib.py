@@ -22,43 +22,42 @@ def parse_mc_input(mc_input):
     energy = mc_input[1][2]
     return run, design, beta, len_mc, energy
 
-
-def energy_global(selection):
-    return mdlib.get_energy(selection)
-
-class Score(object):
-    """ A class for defining the scoring function for modelling
-
-    Attributes
-    ----------
-    formula         How we calculate the energy (important!)
-
-    """
-    def __init__(self, design, energy):
-        self.formula = self._gen_formula(design, energy)
-
-        print self.formula
-        print self.formula.__name__
-
-    def __call__(self, mdl):
-        """ A caller for retrieving the energy for a model
-        """
-        return self.formula(mdl)
-
-    def _gen_formula(self, design, energy):
-        """ Formula generator for energy calculations
-
-        Parameters
-        ----------
-        design : cls
-            Instance of the design class.
-
-        energy : str
-            Type of energy function
-
-        """
-#        if energy == 'global':
-        return energy_global
+#def energy_sel(selection):
+#    return mdlib.get_energy(selection)
+#
+#class Score(object):
+#    """ A class for defining the scoring function for modelling
+#
+#    Attributes
+#    ----------
+#    formula         How we calculate the energy (important!)
+#
+#    """
+#    def __init__(self, design, energy):
+#        self.formula = self._gen_formula(design, energy)
+#
+#        print self.formula
+#        print self.formula.__name__
+#
+#    def __call__(self, mdl):
+#        """ A caller for retrieving the energy for a model
+#        """
+#        return self.formula(mdl)
+#
+#    def _gen_formula(self, design, energy):
+#        """ Formula generator for energy calculations
+#
+#        Parameters
+#        ----------
+#        design : cls
+#            Instance of the design class.
+#
+#        energy : str
+#            Type of energy function
+#
+#        """
+##        if energy == 'global':
+#        return energy_sel
 
 def model_mc_worker(mc_input):
     """
@@ -91,8 +90,8 @@ def model_mc_worker(mc_input):
     nb_stdout = sys.stdout # redirect outputnb_stdout = sys.stdout 
     sys.stdout = open('data/junk%g.out'%run, 'w') 
 
-    # generate energy function
-    scoring_function = Score(design, energy)
+    ## generate energy function
+    #scoring_function = Score(design, energy)
 
     # generate modeller environment
     env = mdlib.modeller_main()
@@ -108,9 +107,7 @@ def model_mc_worker(mc_input):
     n = 0
     naccept = 0
     s = mdlib.get_selection(mdl) 
-    #ener0 = mdlib.get_energy(s) # calculate initial energy
-    #print ener0
-    ener0 = scoring_function(s) # calculate initial energy
+    ener0 = mdlib.get_energy(s) # calculate initial energy
     ener_prev = ener0
     ener_mc = []
     current = pdb
@@ -127,29 +124,30 @@ def model_mc_worker(mc_input):
             mdlib.write_model(mdl, file='data/mutant%g.pdb'%run)
             s = mdlib.get_selection(mdl)
             ener_mut = mdlib.get_energy(s)
-
-#            # calculate energy interface BA'
-#            s = selection()
-#            [s.add(mdl.residues["%s:A"%x]) for x in respos]
-#            ener_ba = s.assess_dope()
-#
-#            # build model for competing mutation    
-#            mutations = []
-#            for r in repeatA:
-#                #print r, mdl.residues["%s:A"%r].pdb_name, tpr_residues[r]
-#                if mdl.residues["%s:A"%r].pdb_name != tpr_residues[r]:
-#                    mutations.append((r, mdl.residues["%s:A"%r].pdb_name))
-#                    #print " divergent residue", r, mdl.residues["%s:A"%r].pdb_name, tpr_residues[r]
-#            mdl.read(file="initial.pdb")
-#            for r, res in mutations:
-#                mdl = mutate_model(mdl, "%s"%(r-34), rt)
-#            # calculate energy interface AB
-#            s = selection()
-#            [s.add(mdl.residues["%s:A"%x]) for x in respos0]
-#            ener_ab = s.assess_dope()
-#            dener = ener_ba - ener_ab
-#            ener = w*ener_mut + (1.-w)*dener
             ener = ener_mut
+
+            # calculate energy interface BA'
+            if energy == 'compete':
+                s = selection()
+                [s.add(mdl.residues["%s:A"%x]) for x in respos]
+                ener_ba = s.assess_dope()
+    
+                # build model for competing mutation    
+                mutations = []
+                for r in repeatA:
+                    if mdl.residues["%s:A"%r].pdb_name != tpr_residues[r]:
+                        mutations.append((r, mdl.residues["%s:A"%r].pdb_name))
+                mdl.read(file=pdb)
+                for r, res in mutations:
+                    mdl = mutate_model(mdl, "%s"%(r-34), rt)
+                # calculate energy interface AB
+                s = selection()
+                [s.add(mdl.residues["%s:A"%x]) for x in respos0]
+                ener_ab = s.assess_dope()
+                dener = ener_ba - ener_ab
+                ener = w*ener_mut + (1.-w)*dener
+
+            # standard acceptance rejection criterion
             if ener < ener_prev:
                 print "### ACCEPT ###"
 #                ener_prev = ener #[ener_mut, ener_ab, ener_ba]
@@ -169,6 +167,7 @@ def model_mc_worker(mc_input):
                     print "### ACCEPT ###"
                     current = 'data/old%g.pdb'%run
                     contribs = [ener_prev]
+
         except OverflowError:
             current = 'data/old%g.pdb'%run
 #

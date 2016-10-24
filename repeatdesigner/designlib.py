@@ -2,7 +2,6 @@
 
 This file is part of the RepeatDesigner package
 
-
 """
 import os
 import sys
@@ -23,9 +22,93 @@ def parse_mc_input(mc_input):
     design = mc_input[1][0]
     beta = mc_input[1][1]
     len_mc = mc_input[1][2]
-    energy = mc_input[1][2]
-    return run, design, beta, len_mc, energy
+    compete = mc_input[1][3]
+    return run, design, beta, len_mc, compete
 
+def gen_models(env, seq_mut, pdb):
+    """ Generate models based on sequence 
+
+    """
+    # write mutant sequence to file
+    Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_mut, id="data/mut"), \
+            open("data/mut.fasta", "w"), "fasta")
+    # align sequence and template
+    align = mdlib.gen_align(env, pdb, "data/mut.fasta", "data/mut","data/align.fasta")
+
+    # generate model
+    mdl = mdlib.get_automodel(env, "data/align.fasta", "data/mut", pdb)
+    return mdl
+
+def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
+    """ Generate mutated model based on sequence
+
+    Includes modelling the mutant for a given sequence and possible 
+    competing selections
+
+    Parameters
+    ----------
+    env :
+
+    design:
+
+    seq_prev : 
+
+    rp : 
+
+    rt : 
+
+    Returns
+    -------
+    seq_mut : object
+        MutableSeq 
+
+    """
+    # generate mutation
+    seq_mut = mutator(seq_prev, rp, rt)
+
+    # generate model for mutant
+    mdl = gen_models(env, seq_mut, design.pdb)
+
+    # calculate energy for whole mutant
+    s = mdlib.get_selection(mdl)
+    ener = mdlib.get_energy(s)
+
+    # generate competing models
+    if design.energy == "compete":
+        # check if mutated residue is in repeat
+        try:
+            assert any([rp in range(rep[0],rep[1]+1) for rep in design.repeats])
+            
+            # find position in repeat
+            for rep in design.repeats:
+                if rp in range(rep[0],rep[1]+1):
+                    index = range(rep[0], rep[1]+1).index(rp)
+
+            # build competing model for each repeat             
+            for rep in design.repeats:
+                if rp not in range(rep[0],rep[1]+1):
+                    seq_comp = mutator(seq_prev, rep[0]+index, rt)
+                    print seq_comp
+        except AssertionError:
+            pass 
+        
+    #    [s.add(mdl.residues["%s:A"%x]) for x in respos]
+    #    ener_ba = s.assess_dope()
+
+    #    # build model for competing mutation    
+    #    mutations = []
+    #    for r in repeatA:
+    #        if mdl.residues["%s:A"%r].pdb_name != tpr_residues[r]:
+    #            mutations.append((r, mdl.residues["%s:A"%r].pdb_name))
+    #    mdl.read(file=pdb)
+    #    for r, res in mutations:
+    #        mdl = mutate_model(mdl, "%s"%(r-34), rt)
+    #    # calculate energy interface AB
+    #    s = selection()
+    #    [s.add(mdl.residues["%s:A"%x]) for x in respos0]
+    #    ener_ab = s.assess_dope()
+    #    dener = ener_ba - ener_ab
+    #    ener = w*ener_mut + (1.-w)*dener
 
 def mutator(seq, rp, rt):
     """
@@ -55,43 +138,6 @@ def mutator(seq, rp, rt):
     mutable_seq[rp] = Bio.SeqUtils.seq1(rt)
     return mutable_seq
 
-#def energy_sel(selection):
-#    return mdlib.get_energy(selection)
-#
-#class Score(object):
-#    """ A class for defining the scoring function for modelling
-#
-#    Attributes
-#    ----------
-#    formula         How we calculate the energy (important!)
-#
-#    """
-#    def __init__(self, design, energy):
-#        self.formula = self._gen_formula(design, energy)
-#
-#        print self.formula
-#        print self.formula.__name__
-#
-#    def __call__(self, mdl):
-#        """ A caller for retrieving the energy for a model
-#        """
-#        return self.formula(mdl)
-#
-#    def _gen_formula(self, design, energy):
-#        """ Formula generator for energy calculations
-#
-#        Parameters
-#        ----------
-#        design : cls
-#            Instance of the design class.
-#
-#        energy : str
-#            Type of energy function
-#
-#        """
-##        if energy == 'global':
-#        return energy_sel
-
 def model_mc_worker(mc_input):
     """
     Simple modelling worker function
@@ -109,90 +155,44 @@ def model_mc_worker(mc_input):
             len_mc : int
                 length of MC run.
         
-            targets : list
-                Residues to mutate
-
     """
     
     # parse input
-    run, design, beta, len_mc, energy = parse_mc_input(mc_input)
+    run, design, beta, len_mc = parse_mc_input(mc_input)
     pdb = design.name
     targets = design.targets
+    if type(design).__name__ == 'Repeat':
+        print " I am a repeat protein!"
 
     # redirect output by keeping track of sys.stdout
     nb_stdout = sys.stdout # redirect outputnb_stdout = sys.stdout 
 #    sys.stdout = open('data/junk%g.out'%run, 'w') 
 
-    ## generate energy function
-    #scoring_function = Score(design, energy)
-
     # generate modeller environment
     env = mdlib.modeller_main()
-
-    # generate initial model from PDB file
-    mdl = mdlib.get_model(env, file=pdb)
 
     respos = targets #[x.index for x in mdl.residues]
     restyp = ["ALA", "ARG", "ASN", "ASP", "CYS", "GLU", "GLN", "GLY", \
             "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", \
             "THR", "TRP", "TYR", "VAL"]
 
-    n = 0
-    naccept = 0
+    # generate initial model from PDB file
+    mdl = mdlib.get_model(env, file=pdb)
     s = mdlib.get_selection(mdl) 
     seq_prev = design.seq
     ener0 = mdlib.get_energy(s) # calculate initial energy
     ener_prev = ener0
+
+    n = 0
+    naccept = 0
     ener_mc = []
-    current = pdb
     while True:
-        #mdl = mdlib.get_model(env, file=current)
-        #mdlib.write_model(mdl, file='data/old%g.pdb'%run)
         rp = random.choice(respos) # randomly select position
         rt = random.choice(restyp) # randomly select residue
-        print n, rp, rt
+        seq, ener = gen_mutated_models(env, design=design, seq_prev=seq_prev, rp=rp, rt=rt, compete=compete)
         
         # build model for actual mutation
         try:
-            # generate mutation
-            seq_mut = mutator(seq_prev, rp, rt)
-            # write mutant sequence to file
-            Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_mut, id="data/mut%g"%run), \
-                    open("data/mut%g.fasta"%run, "w"), "fasta")
-            # align sequence and template
-            align = mdlib.gen_align(env, design.pdb, "data/mut%g.fasta"%run, "data/mut%g"%run,"data/align%g.fasta"%run)
-            # generate model
-            mdl = mdlib.get_automodel(env, "data/align%g.fasta"%run, "data/mut%g"%run, design.pdb)
-
-            s = mdlib.get_selection(mdl)
-#            mdl = mdlib.mutate_model(env, pdb, "data/mut%g_"%run , mdl, rp-1, rt)
-            mdlib.write_model(mdl, file='data/mutant%g.pdb'%run)
-            s = mdlib.get_selection(mdl)
-
-            ener_mut = mdlib.get_energy(s)
-            ener = ener_mut
-
-            # calculate energy interface BA'
-            #if energy == 'compete':
-            #    s = selection()
-            #    [s.add(mdl.residues["%s:A"%x]) for x in respos]
-            #    ener_ba = s.assess_dope()
-    
-            #    # build model for competing mutation    
-            #    mutations = []
-            #    for r in repeatA:
-            #        if mdl.residues["%s:A"%r].pdb_name != tpr_residues[r]:
-            #            mutations.append((r, mdl.residues["%s:A"%r].pdb_name))
-            #    mdl.read(file=pdb)
-            #    for r, res in mutations:
-            #        mdl = mutate_model(mdl, "%s"%(r-34), rt)
-            #    # calculate energy interface AB
-            #    s = selection()
-            #    [s.add(mdl.residues["%s:A"%x]) for x in respos0]
-            #    ener_ab = s.assess_dope()
-            #    dener = ener_ba - ener_ab
-            #    ener = w*ener_mut + (1.-w)*dener
-
             # standard acceptance rejection criterion
             if ener < ener_prev:
                 print "### ACCEPT ###"
@@ -200,7 +200,7 @@ def model_mc_worker(mc_input):
                 #current = 'data/mutant%g.pdb'%run
                 naccept +=1
                 contribs = [ener] #, ener_mut, ener_ab, ener_ba]
-                seq_prev = seq_mut
+                seq_prev = seq
                 ener_prev = ener
             else:
                 dener = ener - ener_prev
@@ -209,8 +209,8 @@ def model_mc_worker(mc_input):
                     #current = 'data/mutant%g.pdb'%run
                     naccept +=1
                     seq_prev = seq_mut
-                    ener_prev = ener 
                     contribs = [ener] #, ener_mut, ener_ab, ener_ba]
+                    ener_prev = ener 
                 else:
                     print "### ACCEPT ###"
                     #current = 'data/old%g.pdb'%run

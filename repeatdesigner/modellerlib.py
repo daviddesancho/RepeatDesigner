@@ -40,7 +40,6 @@ def gen_align(env, pdb, mut, name, aliout):
     Aligns template and test sequences
 
     """
-
     aln = modeller.alignment(env)
     mdl = get_model(env, file=pdb)
     aln.append_model(mdl, align_codes=pdb, atom_files=pdb)

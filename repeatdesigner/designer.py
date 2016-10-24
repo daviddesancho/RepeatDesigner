@@ -22,8 +22,6 @@ class Design(object):
 
     targets     the regions to model
 
-    compete     the competing regions when we need to introduce negative design
-
     """
 
     def __init__(self, pdb=None, targets=None):
@@ -35,7 +33,6 @@ class Design(object):
 
         targets : list
             Residues to mutate in order to improve global energy.
-
 
         """
         self.pdb = pdb
@@ -144,11 +141,8 @@ class Optimizer(object):
 
     beta        The inverse temperature for simulated annealing.
 
-    energy      The energy to optimize.
-
     """
-
-    def __init__(self, design, nruns=1, len_mc=10, beta=1., energy="global"):
+    def __init__(self, design, nruns=1, len_mc=10, beta=1.):
         """
         Parameters
         ----------
@@ -161,21 +155,13 @@ class Optimizer(object):
         beta : float
             Inverse temperature.
 
-        energy : str
-            The type of energy function we want to optimize. Possibilities
-            are "global" and "compete".
-
-        models : dict
-            The models resulting from the optimization, including a model 
-            structure and energy contributions.
-
         """
         self.design = design
         self.nruns = nruns
         self.len_mc = len_mc
         self.beta = beta
         self.models = {}
-        self.energy = energy 
+        self.compete = compete
 
     def run_mc(self):
         """ Parallel MC run generator
@@ -193,7 +179,7 @@ class Optimizer(object):
 
         # Do it!
         results = []
-        input_des = [[x, [self.design, self.beta, self.len_mc, self.energy]] \
+        input_des = [[x, [self.design, self.beta, self.len_mc]] \
                 for x in range(self.nruns)]
         #results = pool.map(designlib.model_mc_worker, input_des)
         #pool.close()

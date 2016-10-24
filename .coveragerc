@@ -4,6 +4,7 @@ omit =
   */modeller/*
   */numpy/*
   */Bio/*
+  *xml*
   *ctypes*
   *bisect*       
   *commands*

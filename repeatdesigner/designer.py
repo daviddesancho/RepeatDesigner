@@ -185,21 +185,21 @@ class Optimizer(object):
     
         """
         #  Multiprocessing options
-        nproc = mp.cpu_count()
-        if self.nruns < nproc:
-            pool = mp.Pool(self.nruns)
-        else:
-            pool = mp.Pool(nproc-1)
+        #nproc = mp.cpu_count()
+        #if self.nruns < nproc:
+        #    pool = mp.Pool(self.nruns)
+        #else:
+        #    pool = mp.Pool(nproc-1)
 
         # Do it!
         results = []
         input_des = [[x, [self.design, self.beta, self.len_mc, self.energy]] \
                 for x in range(self.nruns)]
-        results = pool.map(designlib.model_mc_worker, input_des)
-        pool.close()
-        pool.join()
-        #for x in range(self.nruns):
-        #    results.append(designlib.model_mc_worker(input_des[x]))
+        #results = pool.map(designlib.model_mc_worker, input_des)
+        #pool.close()
+        #pool.join()
+        for x in range(self.nruns):
+            results.append(designlib.model_mc_worker(input_des[x]))
 
         # Parse results
         parser = Bio.PDB.PDBParser()

@@ -161,7 +161,6 @@ class Optimizer(object):
         self.len_mc = len_mc
         self.beta = beta
         self.models = {}
-        self.compete = compete
 
     def run_mc(self):
         """ Parallel MC run generator

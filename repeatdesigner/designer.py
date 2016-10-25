@@ -170,7 +170,7 @@ class Optimizer(object):
     
         """
         #  Multiprocessing options
-        #nproc = mp.cpu_count()
+        nproc = mp.cpu_count()
         #if self.nruns < nproc:
         #    pool = mp.Pool(self.nruns)
         #else:
@@ -184,6 +184,7 @@ class Optimizer(object):
         #pool.close()
         #pool.join()
         for x in range(self.nruns):
+            print " Run #%g"%x
             results.append(designlib.model_mc_worker(input_des[x]))
 
         # Parse results

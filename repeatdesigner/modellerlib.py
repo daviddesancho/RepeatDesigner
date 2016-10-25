@@ -88,7 +88,7 @@ def get_selection(mdl, sel=None):
     if not sel:
         return modeller.selection(mdl)
     else:
-        pass
+        return modeller.selection(sel).select_sphere(5)
 
 def get_energy(selection):
     """

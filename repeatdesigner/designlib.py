@@ -34,7 +34,6 @@ def model_mc_worker(mc_input):
                 length of MC run.
         
     """
-    
     # parse input
     run, design, beta, len_mc = parse_mc_input(mc_input)
     pdb = design.name
@@ -85,12 +84,17 @@ def model_mc_worker(mc_input):
         if n >= len_mc:
             # wrap up
             # write mutant sequence to file
-            Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_prev, id="data/final%g"%run), \
+            Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_prev, id="data/final%g.fasta"%run), \
                     open("data/final%g.fasta"%run, "w"), "fasta")
             # align sequence and template
-            align = mdlib.gen_align(env, design.pdb, "data/final%g.fasta"%run, "data/final%g"%run,"data/align%g.fasta"%run)
+            align = mdlib.gen_align(env, pdb=design.pdb, mut="data/final%g.fasta"%run, out="data/align%g.fasta"%run)
             # generate model
-            mdl = mdlib.get_automodel(env, "data/align%g.fasta"%run, "data/final%g"%run, design.pdb)
+            mdl = mdlib.get_automodel(env, "data/align%g.fasta"%run, "data/final%g.fasta"%run, design.pdb)
+
+
+            ali_tf = tempfile.NamedTemporaryFile(prefix='ali_', suffix='.fasta', \
+                delete=False)
+
 
             #mdl = mdlib.get_model(env, file=current)
             mdlib.write_model(mdl, file="data/final_run%s"%run + ".pdb")

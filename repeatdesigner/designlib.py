@@ -5,12 +5,15 @@ This file is part of the RepeatDesigner package
 """
 import os
 import sys
-import numpy as np
+import tempfile
 import random
+import numpy as np
+
 import Bio.pairwise2
 import Bio.SeqUtils
 import Bio.SeqIO
 import Bio.SeqRecord
+
 import modellerlib as mdlib
 
 def model_mc_worker(mc_input):
@@ -95,6 +98,7 @@ def model_mc_worker(mc_input):
             break
     sys.stdout = nb_stdout # redirect output    
     return ener_mc
+
 def parse_mc_input(mc_input):
     """
     Parses multiprocessing input
@@ -106,19 +110,38 @@ def parse_mc_input(mc_input):
     len_mc = mc_input[1][2]
     return run, design, beta, len_mc
 
-def gen_models(env, seq_mut, pdb):
+def gen_models(env, seq_mut=None, pdb=None):
     """ Generate models based on sequence 
 
+    Parameters
+    ----------
+    seq_mut : object
+        Instance of Seq class.
+
+    pdb : str
+        PDB filename for template.
+
+    Returns
+    -------
+    mdl : object
+        Instance of Modeller's model class.
+
     """
-    # write mutant sequence to file
-    mut = "data/mut"
-    Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_mut, id=mut), \
-            open("data/mut.fasta", "w"), "fasta")
+    # write mutant sequence to temporary file
+    mut_tf = tempfile.NamedTemporaryFile(prefix='mut_', suffix='.fasta', \
+            delete=False)
+    Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_mut, id=mut_tf.name), \
+            mut_tf.name, "fasta")
+    mut_tf.close()
+
     # align sequence and template
-    align = mdlib.gen_align(env, pdb, "data/mut.fasta", mut, "data/align.fasta")
+    ali_tf = tempfile.NamedTemporaryFile(prefix='ali_', suffix='.fasta', \
+            delete=False)
+    align = mdlib.gen_align(env, pdb=pdb, mut=mut_tf.name, out=ali_tf.name)
 
     # generate model
-    mdl = mdlib.get_automodel(env, "data/align.fasta", mut, pdb)
+    mdl = mdlib.get_automodel(env, ali_tf.name, mut_tf.name, pdb)
+    
     return mdl
 
 def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
@@ -149,7 +172,7 @@ def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
     seq_mut = mutator(seq_prev, rp, rt)
 
     # generate model for mutant
-    mdl = gen_models(env, seq_mut, design.pdb)
+    mdl = gen_models(env, seq_mut=seq_mut, pdb=design.pdb)
 
     # calculate energy for whole mutant
     s = mdlib.get_selection(mdl)

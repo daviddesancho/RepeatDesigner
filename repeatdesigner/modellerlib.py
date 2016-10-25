@@ -33,17 +33,33 @@ def modeller_main():
     env.libs.parameters.read(file='$(LIB)/par.lib')
     return env
 
-def gen_align(env, pdb, mut, name, aliout):
+def gen_align(env, pdb=None, mut=None, out=None):
     """
     Aligns template and test sequences
+
+    Parameters
+    ----------
+    pdb : str
+        PDB filename for template.
+
+    mut : str
+        Temporary filename for mutant sequence.
+
+    out : str
+        Filename for output.
+
+    Returns
+    -------
+    aln : object
+        Instance of Modeller's alignment class.
 
     """
     aln = modeller.alignment(env)
     mdl = get_model(env, file=pdb)
     aln.append_model(mdl, align_codes=pdb, atom_files=pdb)
-    aln.append(file=mut, align_codes=name, alignment_format='FASTA')
+    aln.append(file=mut, align_codes=mut, alignment_format='FASTA')
     aln.align2d()
-    aln.write(file=aliout, alignment_format='PIR')
+    aln.write(file=out, alignment_format='PIR')
 #    aln.write(file=aliout, alignment_format='PAP')
     return aln
 

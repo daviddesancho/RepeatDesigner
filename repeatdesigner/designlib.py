@@ -6,6 +6,7 @@ This file is part of the RepeatDesigner package
 import os
 import sys
 import tempfile
+import itertools
 import random
 import numpy as np
 
@@ -42,8 +43,8 @@ def model_mc_worker(mc_input):
         print " I am a repeat protein!"
 
     # redirect output by keeping track of sys.stdout
-    nb_stdout = sys.stdout # redirect outputnb_stdout = sys.stdout 
-    sys.stdout = open('data/junk%g.out'%run, 'w') 
+    #nb_stdout = sys.stdout # redirect outputnb_stdout = sys.stdout 
+    #sys.stdout = open('data/junk%g.out'%run, 'w') 
 
     # generate modeller environment
     env = mdlib.modeller_main()
@@ -68,10 +69,10 @@ def model_mc_worker(mc_input):
         rt = random.choice(restyp) # randomly select residue
 
         # build model for actual mutation
-        print seq_prev,
+        print seq_prev
         print rp,
         print rt
-        seq, ener = gen_mutated_models(env, design=design, \
+        seq, ener = gen_all_models(env, design=design, \
                 seq_prev=seq_prev, rp=rp, rt=rt)
                 
         # standard acceptance rejection criterion
@@ -102,7 +103,7 @@ def model_mc_worker(mc_input):
             mdlib.write_model(mdl, file="data/final_run%s"%run + ".pdb")
             #os.remove('data/mutant%g.pdb'%run)
             break
-    sys.stdout = nb_stdout # redirect output    
+#    sys.stdout = nb_stdout # redirect output    
     return ener_mc
 
 def parse_mc_input(mc_input):
@@ -150,7 +151,40 @@ def gen_models(env, seq_mut=None, pdb=None):
     
     return mdl
 
-def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None, weights=[1. ,1.]):
+def gen_all_models(env, design=None, seq_prev=None, rp=None, rt=None, weights=[1. ,1.]):
+    """ Generate mutated and competing models based on sequence
+
+    Includes modelling the mutant for a given sequence and possible 
+    competing selections
+
+    Parameters
+    ----------
+    env :
+
+    design:
+
+    seq_prev : 
+
+    rp : 
+
+    rt : 
+
+    Returns
+    -------
+    seq_mut : object
+        MutableSeq with the mutated sequence.
+
+    ener : float
+        The energy of the mutated model.
+
+    """
+    seq_mut, ener_mut = gen_mutated_models(env, design=design, seq_prev=seq_prev, rp=rp, rt=rt)
+    if type(design).__name__ == 'Repeat':
+        ener_comp = gen_interfaces(env, design=design, seq_mut=seq_mut, seq_prev=seq_prev, rp=rp, rt=rt)
+
+    return seq_mut.toseq(), weights[0]*ener_mut + weights[1]*ener_comp
+
+def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
     """ Generate mutated model based on sequence
 
     Includes modelling the mutant for a given sequence and possible 
@@ -176,7 +210,7 @@ def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None, weight
     """
     # generate mutation
     seq_mut = mutator(seq_prev, rp, rt)
-    #print seq_mut
+    print seq_mut
 
     # generate model for mutant
     mdl = gen_models(env, seq_mut=seq_mut, pdb=design.pdb)
@@ -185,46 +219,52 @@ def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None, weight
     s = mdlib.get_selection(mdl)
     ener = mdlib.get_energy(s)
 
-    # generate competing models
-    if type(design).__name__ == 'Repeat':
-        #print " I am a repeat protein!"
-        # check if mutated residue is in repeat
-        try:
-            assert any([rp in range(rep[0],rep[1]+1) for rep in design.repeats])
-            
-            # find position in repeat
-            #print "Finding mutated residue in repeat"
-            for rep in design.repeats:
-                if rp in range(rep[0],rep[1]+1):
-                    mut_rep =rep
-                    index = range(rep[0], rep[1]+1).index(rp)
-                    break
-            s = mdlib.get_selection(mdl, sel=mdl.residues[str(rp)]).select_sphere(5.).only_sidechain()
-            ener_comp = (len(design.repeats)-1)*mdlib.get_energy(s)
-            #print s
+    return seq_mut, ener 
 
-            # build competing model for each repeat             
-            #print " Building competing models"
-            for rep in design.repeats:
-                print rep 
-                if rp not in range(rep[0],rep[1]+1):
-                    #seq_comp = mutator(seq_prev, rep[0]+index, rt)
-                    seq_comp = seq_prev.tomutable() 
-                    # replace original sequence by mutated sequence
-                    seq_comp[rep[0]:rep[1]+1] = seq_mut[mut_rep[0]:mut_rep[1]+1]
-                    #print seq_comp
-                    mdl = gen_models(env, seq_mut=seq_comp, pdb=design.pdb)
-                    s = mdlib.get_selection(mdl, sel=mdl.residues[str(rep[0]+index)]).select_sphere(5.).only_sidechain()
-                    #print s
-                    #print [x for x in s]
-                    ener_comp -= mdlib.get_energy(s)
-                    #print ener_comp
-        except AssertionError:
-            print " AssertionError : residue not in repeat"
-        
-        return seq_mut.toseq(), weights[0]*ener + weights[1]*ener_comp
-    else:
-        return seq_mut.toseq(), ener
+def gen_interfaces(env, design=None, seq_mut=None, seq_prev=None, rp=None, rt=None):
+    """ 
+    Generate competing interfaces
+    
+    """
+    print " Initial repeat:" 
+    print [seq_prev[x[0]:x[1]+1] for x in design.repeats]
+    # check if mutated residue is in repeat
+    try:
+        # find position in repeat
+        print "Finding mutated residue in repeat"
+        mut_rep = [x for x in design.repeats if rp in range(x[0],x[1])][0]
+    except IndexError:
+        print " IndexError : residue not in repeat"
+        return 0.
+    ind_mut = design.repeats.index(mut_rep)
+    index = rp - mut_rep[0] 
+    print " Mutated repeat:", ind_mut, mut_rep
+    print [seq_mut[x[0]:x[1]+1] for x in design.repeats]
+    print " residue:", index
+
+    # Which interfaces to build
+    ireps = range(len(design.repeats))
+    interfaces = [y for y in itertools.product(ireps,ireps) if \
+            ((y[0]!=y[1]) and (y[1]!=y[0]+1) and ind_mut in y)]
+    # build competing interfaces
+    ener_interfaces = 0.
+    for inter in interfaces:
+        print " Building competing models", inter
+        rep0 = design.repeats[inter[0]]
+        rep1 = design.repeats[inter[1]]
+        rep_prev = design.repeats[0]
+        rep_next = design.repeats[1]
+        seq_comp = seq_prev.tomutable()
+        # replace original sequence by mutated sequence
+        seq_comp[rep_prev[0]:rep_prev[1]+1] = seq_mut[rep0[0]:rep0[1]+1]
+        seq_comp[rep_next[0]:rep_next[1]+1] = seq_mut[rep1[0]:rep1[1]+1]
+        #mdl = gen_models(env, seq_mut=seq_comp, pdb=design.pdb)
+        #s0 = mdlib.get_selection(mdl, sel=mdl.residue_range(str(rep_prev[0]), str(rep_prev[1]+1)))
+        #ener_interfaces -= mdlib.get_energy(s0)
+        print [seq_comp[x[0]:x[1]+1] for x in design.repeats]
+        print
+    ener_interfaces = 0.
+    return ener_interfaces 
 
 def mutator(seq, rp, rt):
     """

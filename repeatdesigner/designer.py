@@ -109,6 +109,7 @@ class Repeat(Design):
         """
         Design.__init__(self, pdb=pdb, targets=targets)
         self.repeats = self._parse_repeats(repeats)
+        print " .. repeats : ",self.repeats
 
     def _parse_repeats(self, repeats):
         """ 

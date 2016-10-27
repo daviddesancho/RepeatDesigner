@@ -4,7 +4,16 @@
 
 
 # RepeatDesigner
-A library for designing repeat proteins
+A library for re-designing repeat proteins
+
+Functionality
+-------------
+The package uses homology modelling tools for re-designing repeat proteins.
+Two different scenarios are envisioned.
+
+* Concerted engineering of repeat residues, so that mutations are introduced
+simultaneously in all repeats.
+* Decoupled engineering of repeats, in order to produce different specificities.
 
 
 Dependencies
@@ -14,5 +23,5 @@ Dependencies
 * Modeller - http://salilab.org/modeller/
 * Seaborn - https://github.com/mwaskom/seaborn
 
-These dependencies will be checked by the installation process with the exception of Modeller, which 
-requires prior installation by the end-user.
+These dependencies will be checked by the installation process with the
+ exception of Modeller, which requires prior installation by the end-user.

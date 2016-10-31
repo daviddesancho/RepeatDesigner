@@ -23,6 +23,7 @@ def modeller_main():
     env.io.hetatm = True
     #soft sphere potential
     env.edat.dynamic_sphere=False
+    env.edat.nonbonded_sel_atoms = 2
     #lennard-jones potential (more accurate)
     env.edat.dynamic_lennard=True
     env.edat.contact_shell = 4.0

@@ -249,6 +249,7 @@ def gen_interfaces(env, design=None, seq_mut=None, seq_prev=None, rp=None, rt=No
     # build competing interfaces
     ener_interfaces = 0.
     for inter in interfaces:
+        # Interfaces are built by threading the repeat sequences into the 1st and 2nd repeat structure
         print " Building competing models", inter
         rep0 = design.repeats[inter[0]]
         rep1 = design.repeats[inter[1]]
@@ -258,8 +259,14 @@ def gen_interfaces(env, design=None, seq_mut=None, seq_prev=None, rp=None, rt=No
         # replace original sequence by mutated sequence
         seq_comp[rep_prev[0]:rep_prev[1]+1] = seq_mut[rep0[0]:rep0[1]+1]
         seq_comp[rep_next[0]:rep_next[1]+1] = seq_mut[rep1[0]:rep1[1]+1]
-        #mdl = gen_models(env, seq_mut=seq_comp, pdb=design.pdb)
-        #s0 = mdlib.get_selection(mdl, sel=mdl.residue_range(str(rep_prev[0]), str(rep_prev[1]+1)))
+        env.edat.nonbonded_sel_atoms = 2
+        mdl = gen_models(env, seq_mut=seq_comp, pdb=design.pdb)
+        s0 = mdlib.get_selection(mdl, sel=mdl.residue_range(str(rep_prev[0]), str(rep_prev[1]+1)))
+        s1 = mdlib.get_selection(mdl, sel=mdl.residue_range(str(rep_next[0]), str(rep_next[1]+1)))
+        s0s1 =mdlib.get_selection(mdl, sel=(mdl.residue_range(str(rep_prev[0]), str(rep_prev[1]+1)), mdl.residue_range(str(rep_next[0]), str(rep_next[1]+1)))) 
+        mdlib.get_energy(s0)
+        mdlib.get_energy(s1)
+        mdlib.get_energy(s0s1)
         #ener_interfaces -= mdlib.get_energy(s0)
         print [seq_comp[x[0]:x[1]+1] for x in design.repeats]
         print

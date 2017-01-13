@@ -55,7 +55,7 @@ def model_mc_worker(mc_input):
             "THR", "TRP", "TYR", "VAL"]
 
     # generate initial model from PDB file
-    mdl = mdlib.get_model(env, file=pdb)
+    mdl = mdlib.complete(env, file=pdb)
     s = mdlib.get_selection(mdl) 
     seq_prev = design.seq
     ener0 = mdlib.get_energy(s) # calculate initial energy
@@ -81,7 +81,7 @@ def model_mc_worker(mc_input):
 
         contribs = [ener_prev]
 #        current = 'data/old%g.pdb'%run
-        print " Current energy %g\n"%ener_prev
+        print " Current energy, ",ener_prev
         ener_mc.append(contribs)
 
         n +=1
@@ -182,7 +182,7 @@ def gen_all_models(env, design=None, seq_prev=None, rp=None, rt=None, weights=[1
     if type(design).__name__ == 'Repeat':
         ener_comp = gen_interfaces(env, design=design, seq_mut=seq_mut, seq_prev=seq_prev, rp=rp, rt=rt)
 
-    return seq_mut.toseq(), weights[0]*ener_mut + weights[1]*ener_comp
+    return seq_mut.toseq(), ener_mut #weights[0]*ener_mut + weights[1]*ener_comp
 
 def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
     """ Generate mutated model based on sequence
@@ -214,11 +214,17 @@ def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
 
     # generate model for mutant
     mdl = gen_models(env, seq_mut=seq_mut, pdb=design.pdb)
+    mdl_tf = tempfile.NamedTemporaryFile(prefix='mdl_', suffix='.pdb', \
+            delete=False)
+    print mdl_tf
+    mdlib.write_model(mdl, file=mdl_tf)
+    mdl_tf.close()
 
     # calculate energy for whole mutant
+    mdl = mdlib.complete(env, file=mdl_tf.name)
     s = mdlib.get_selection(mdl)
     ener = mdlib.get_energy(s)
-
+    os.remove(mdl_tf.name)
     return seq_mut, ener 
 
 def gen_interfaces(env, design=None, seq_mut=None, seq_prev=None, rp=None, rt=None):

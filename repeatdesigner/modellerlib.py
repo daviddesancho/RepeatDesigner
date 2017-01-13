@@ -9,6 +9,7 @@ https://salilab.org/modeller/tutorial/basic.html
 import os
 import numpy as np
 import modeller
+import modeller.scripts
 import modeller.automodel
 import modeller.optimizers
 
@@ -94,7 +95,7 @@ def get_selection(mdl, sel=None):
 
 def get_energy(selection):
     """
-    Calculates DOPE energy
+    Calculates LJ and coulomb energy
 
     Parameters
     ----------
@@ -107,7 +108,9 @@ def get_energy(selection):
         DOPE energy value.
 
     """
-    return selection.assess_dope()
+    energy = selection.energy(edat=modeller.energy_data(dynamic_sphere=True, \
+            dynamic_lennard=True, dynamic_coulomb=True))
+    return energy[0]
 
 def write_model(mdl, file=None):
     """
@@ -120,3 +123,22 @@ def write_model(mdl, file=None):
 
     """
     mdl.write(file)
+
+def complete(env, file=None):
+    """
+    Run complete_pdb
+
+    Parameters
+    ----------
+    env
+    file : str
+        PDB file to read
+
+    Returns
+    -------
+    mdl :
+        Modeller instance of model.
+
+    """
+    mdl = modeller.scripts.complete_pdb(env, file)
+    return mdl

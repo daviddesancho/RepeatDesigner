@@ -156,6 +156,9 @@ class Optimizer(object):
         beta : float
             Inverse temperature.
 
+        nruns : int
+            Number of runs.
+
         """
         self.design = design
         self.nruns = nruns

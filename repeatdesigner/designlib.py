@@ -108,7 +108,24 @@ def model_mc_worker(mc_input):
 
 def parse_mc_input(mc_input):
     """
-    Parses multiprocessing input
+    Parses multiprocessing input.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    run : int
+        Index for number of run.
+
+    design : object
+        Design class instance.
+
+    beta : float
+        Inverse temperature.
+
+    len_mc : int
+        Length of each run.
 
     """
     run = mc_input[0]

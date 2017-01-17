@@ -69,6 +69,15 @@ def get_automodel(env, aliin, mut, pdb):
     """
     Generates model from sequence
 
+    env : object
+        Modeller environment.
+
+    aliin
+
+    mut
+
+    pdb
+
     """
     a = modeller.automodel.automodel(env, alnfile=aliin, knowns=pdb, sequence=mut)
     assess_methods = (modeller.automodel.assess.DOPE)
@@ -79,12 +88,21 @@ def get_model(env, file=None):
     """ 
     Generate model using Modeller
 
+    env : object
+        Modeller environment.
+
     """
     return modeller.model(env, file=file)
 
 def get_selection(mdl, sel=None):
     """
     Generate selection
+
+    mdl : object
+        Modeller model.
+
+    sel : str
+        Selection.
 
     """
     if not sel:
@@ -131,6 +149,7 @@ def complete(env, file=None):
     Parameters
     ----------
     env
+
     file : str
         PDB file to read
 

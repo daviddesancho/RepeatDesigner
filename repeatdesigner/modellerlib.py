@@ -80,7 +80,7 @@ def get_automodel(env, aliin, mut, pdb):
 
     """
     a = modeller.automodel.automodel(env, alnfile=aliin, knowns=pdb, sequence=mut)
-    assess_methods = (modeller.automodel.assess.DOPE)
+    #assess_methods = (modeller.automodel.assess.DOPE)
     a.make()
     return a
 
@@ -122,12 +122,12 @@ def get_energy(selection):
 
     Returns
     -------
-    float
-        DOPE energy value.
+    energy : float 
+        Modeller energy value.
 
     """
     energy = selection.energy(edat=modeller.energy_data(dynamic_sphere=True, \
-            dynamic_lennard=True, dynamic_coulomb=True))
+            dynamic_lennard=True, dynamic_coulomb=True, nonbonded_sel_atoms=2))
     return energy[0]
 
 def write_model(mdl, file=None):
@@ -144,7 +144,8 @@ def write_model(mdl, file=None):
 
 def complete(env, file=None):
     """
-    Run complete_pdb
+    Run complete_pdb[1]_
+
 
     Parameters
     ----------
@@ -158,6 +159,10 @@ def complete(env, file=None):
     mdl :
         Modeller instance of model.
 
+    Notes
+    ----------
+    ..[1] complete_pdb(): read a PDB file, and fill in any missing residues
+    https://salilab.org/modeller/9v1/manual/node343.html
     """
     mdl = modeller.scripts.complete_pdb(env, file)
     return mdl

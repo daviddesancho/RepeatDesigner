@@ -175,26 +175,27 @@ class Optimizer(object):
         """
         #  Multiprocessing options
         nproc = mp.cpu_count()
-        #if self.nruns < nproc:
-        #    pool = mp.Pool(self.nruns)
-        #else:
-        #    pool = mp.Pool(nproc-1)
+        if self.nruns < nproc:
+            pool = mp.Pool(self.nruns)
+        else:
+            pool = mp.Pool(nproc-1)
 
         # Do it!
         results = []
         input_des = [[x, [self.design, self.beta, self.len_mc]] \
                 for x in range(self.nruns)]
-        #results = pool.map(designlib.model_mc_worker, input_des)
-        #pool.close()
-        #pool.join()
-        for x in range(self.nruns):
-            print " Run #%g"%x
-            results.append(designlib.model_mc_worker(input_des[x]))
+        results = pool.map(designlib.model_mc_worker, input_des)
+        pool.close()
+        pool.join()
+        #for x in range(self.nruns):
+        #    print " Run #%g"%x
+        #    results.append(designlib.model_mc_worker(input_des[x]))
 
         # Parse results
-        parser = Bio.PDB.PDBParser()
+        #parser = Bio.PDB.PDBParser()
         for x in range(self.nruns):
-            ener_mc = results[x]
+            seq, ener_mc = results[x]
             self.models[x] = {}
-            self.models[x]['model'] = parser.get_structure("model%g"%x, "data/final_run%s.pdb"%x)
+            self.models[x]['seq'] = seq
+            #self.models[x]['model'] = parser.get_structure("model%g"%x, "data/final_run%s.pdb"%x)
             self.models[x]['score'] = ener_mc

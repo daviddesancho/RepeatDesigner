@@ -43,8 +43,8 @@ def model_mc_worker(mc_input):
         print " I am a repeat protein!"
 
     # redirect output by keeping track of sys.stdout
-    #nb_stdout = sys.stdout # redirect outputnb_stdout = sys.stdout 
-    #sys.stdout = open('data/junk%g.out'%run, 'w') 
+    nb_stdout = sys.stdout # redirect outputnb_stdout = sys.stdout 
+    sys.stdout = open('data/junk%g.out'%run, 'w') 
 
     # generate modeller environment
     env = mdlib.modeller_main()
@@ -59,6 +59,7 @@ def model_mc_worker(mc_input):
     s = mdlib.get_selection(mdl) 
     seq_prev = design.seq
     ener0 = mdlib.get_energy(s) # calculate initial energy
+    #print ener0
     contribs = [ener0] #, ener_mut, ener_ab, ener_ba]
     ener_prev = ener0
 
@@ -69,9 +70,6 @@ def model_mc_worker(mc_input):
         rt = random.choice(restyp) # randomly select residue
 
         # build model for actual mutation
-        print seq_prev
-        print rp,
-        print rt
         seq, ener = gen_all_models(env, design=design, \
                 seq_prev=seq_prev, rp=rp, rt=rt)
                 
@@ -80,31 +78,29 @@ def model_mc_worker(mc_input):
                 ener_prev, seq, seq_prev, beta)
 
         contribs = [ener_prev]
-#        current = 'data/old%g.pdb'%run
-        print " Current energy, ",ener_prev
         ener_mc.append(contribs)
 
         n +=1
 
         if n >= len_mc:
-            # wrap up
-            # write mutant sequence to file
-            Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_prev, id="data/final%g.fasta"%run), \
-                    open("data/final%g.fasta"%run, "w"), "fasta")
-            # align sequence and template
-            align = mdlib.gen_align(env, pdb=design.pdb, mut="data/final%g.fasta"%run, out="data/align%g.fasta"%run)
-            # generate model
-            mdl = mdlib.get_automodel(env, "data/align%g.fasta"%run, "data/final%g.fasta"%run, design.pdb)
+    #        # wrap up
+    #        # write mutant sequence to file
+    #        Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_prev, id="data/final%g.fasta"%run), \
+    #                open("data/final%g.fasta"%run, "w"), "fasta")
+    #        # align sequence and template
+    #        align = mdlib.gen_align(env, pdb=pdb, mut="data/final%g.fasta"%run, \
+    #                out="data/align%g.fasta"%run)
+    #        # generate model
+    #        mdl = mdlib.get_automodel(env, "data/align%g.fasta"%run, "data/final%g.fasta"%run, pdb)
 
-            ali_tf = tempfile.NamedTemporaryFile(prefix='ali_', suffix='.fasta', \
-                delete=False)
+    #        ali_tf = tempfile.NamedTemporaryFile(prefix='ali_', suffix='.fasta', \
+    #            delete=False)
 
-            #mdl = mdlib.get_model(env, file=current)
-            mdlib.write_model(mdl, file="data/final_run%s"%run + ".pdb")
-            #os.remove('data/mutant%g.pdb'%run)
-            break
-#    sys.stdout = nb_stdout # redirect output    
-    return ener_mc
+    #        #mdl = mdlib.get_model(env, file=current)
+    #        mdlib.write_model(mdl, file="data/final_run%s"%run + ".pdb")
+    #        #os.remove('data/mutant%g.pdb'%run)
+            sys.stdout = nb_stdout # redirect output    
+            return seq_prev, ener_mc
 
 def parse_mc_input(mc_input):
     """
@@ -165,6 +161,8 @@ def gen_models(env, seq_mut=None, pdb=None):
 
     # generate model
     mdl = mdlib.get_automodel(env, ali_tf.name, mut_tf.name, pdb)
+    os.remove(mut_tf.name)
+    os.remove(ali_tf.name)
     
     return mdl
 
@@ -196,8 +194,8 @@ def gen_all_models(env, design=None, seq_prev=None, rp=None, rt=None, weights=[1
 
     """
     seq_mut, ener_mut = gen_mutated_models(env, design=design, seq_prev=seq_prev, rp=rp, rt=rt)
-    if type(design).__name__ == 'Repeat':
-        ener_comp = gen_interfaces(env, design=design, seq_mut=seq_mut, seq_prev=seq_prev, rp=rp, rt=rt)
+    #if type(design).__name__ == 'Repeat':
+    #    ener_comp = gen_interfaces(env, design=design, seq_mut=seq_mut, seq_prev=seq_prev, rp=rp, rt=rt)
 
     return seq_mut.toseq(), ener_mut #weights[0]*ener_mut + weights[1]*ener_comp
 
@@ -227,21 +225,19 @@ def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
     """
     # generate mutation
     seq_mut = mutator(seq_prev, rp, rt)
-    print seq_mut
 
     # generate model for mutant
-    mdl = gen_models(env, seq_mut=seq_mut, pdb=design.pdb)
-    mdl_tf = tempfile.NamedTemporaryFile(prefix='mdl_', suffix='.pdb', \
-            delete=False)
-    print mdl_tf
-    mdlib.write_model(mdl, file=mdl_tf)
-    mdl_tf.close()
+    mdl = gen_models(env, seq_mut=seq_mut, pdb=design.name)
+    #mdl_tf = tempfile.NamedTemporaryFile(prefix='mdl_', suffix='.pdb', \
+    #        delete=False)
+    #mdlib.write_model(mdl, file=mdl_tf)
+    #mdl_tf.close()
 
     # calculate energy for whole mutant
-    mdl = mdlib.complete(env, file=mdl_tf.name)
+    #mdl = mdlib.complete(env, file=mdl_tf.name)
     s = mdlib.get_selection(mdl)
     ener = mdlib.get_energy(s)
-    os.remove(mdl_tf.name)
+    #os.remove(mdl_tf.name)
     return seq_mut, ener 
 
 def gen_interfaces(env, design=None, seq_mut=None, seq_prev=None, rp=None, rt=None):

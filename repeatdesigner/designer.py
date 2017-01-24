@@ -181,7 +181,7 @@ class Optimizer(object):
             pool = mp.Pool(nproc-1)
 
         # Do it!
-        results = []
+        #results = []
         input_des = [[x, [self.design, self.beta, self.len_mc]] \
                 for x in range(self.nruns)]
         results = pool.map(designlib.model_mc_worker, input_des)

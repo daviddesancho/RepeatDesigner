@@ -17,6 +17,7 @@ import Bio.SeqRecord
 
 import modellerlib as mdlib
 
+
 def model_mc_worker(mc_input):
     """
     Simple modelling worker function
@@ -36,6 +37,7 @@ def model_mc_worker(mc_input):
         
     """
     # parse input
+    print mc_input
     run, design, beta, len_mc = parse_mc_input(mc_input)
     pdb = design.name
     targets = design.targets
@@ -44,7 +46,7 @@ def model_mc_worker(mc_input):
 
     # redirect output by keeping track of sys.stdout
     nb_stdout = sys.stdout # redirect outputnb_stdout = sys.stdout 
-    sys.stdout = open('data/junk%g.out'%run, 'w') 
+    sys.stdout = open('data/log%g.out'%run, 'w') 
 
     # generate modeller environment
     env = mdlib.modeller_main()
@@ -66,12 +68,16 @@ def model_mc_worker(mc_input):
     n = 0
     ener_mc = [contribs]
     while True:
+        print " Step %g"%n
         rp = random.choice(respos) # randomly select position
         rt = random.choice(restyp) # randomly select residue
+        print rp,rt
 
         # build model for actual mutation
         seq, ener = gen_all_models(env, design=design, \
                 seq_prev=seq_prev, rp=rp, rt=rt)
+        print "seq: %s"%seq
+        print "ener: %g"%ener
                 
         # standard acceptance rejection criterion
         seq_prev, ener_prev = boltzmann(ener, \
@@ -83,22 +89,22 @@ def model_mc_worker(mc_input):
         n +=1
 
         if n >= len_mc:
-    #        # wrap up
-    #        # write mutant sequence to file
-    #        Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_prev, id="data/final%g.fasta"%run), \
-    #                open("data/final%g.fasta"%run, "w"), "fasta")
-    #        # align sequence and template
-    #        align = mdlib.gen_align(env, pdb=pdb, mut="data/final%g.fasta"%run, \
-    #                out="data/align%g.fasta"%run)
-    #        # generate model
-    #        mdl = mdlib.get_automodel(env, "data/align%g.fasta"%run, "data/final%g.fasta"%run, pdb)
+            # wrap up
+            # write mutant sequence to file
+            Bio.SeqIO.write(Bio.SeqRecord.SeqRecord(seq_prev, id="data/final%g.fasta"%run), \
+                    open("data/final%g.fasta"%run, "w"), "fasta")
+            # align sequence and template
+            align = mdlib.gen_align(env, pdb=pdb, mut="data/final%g.fasta"%run, \
+                    out="data/align%g.fasta"%run)
+            # generate model
+            mdl = mdlib.get_automodel(env, "data/align%g.fasta"%run, "data/final%g.fasta"%run, pdb)
 
-    #        ali_tf = tempfile.NamedTemporaryFile(prefix='ali_', suffix='.fasta', \
-    #            delete=False)
+            ali_tf = tempfile.NamedTemporaryFile(prefix='ali_', suffix='.fasta', \
+                delete=False)
 
-    #        #mdl = mdlib.get_model(env, file=current)
-    #        mdlib.write_model(mdl, file="data/final_run%s"%run + ".pdb")
-    #        #os.remove('data/mutant%g.pdb'%run)
+            #mdl = mdlib.get_model(env, file=current)
+            mdlib.write_model(mdl, file="data/final_run%s"%run + ".pdb")
+            #os.remove('data/mutant%g.pdb'%run)
             sys.stdout = nb_stdout # redirect output    
             return seq_prev, ener_mc
 
@@ -135,6 +141,9 @@ def gen_models(env, seq_mut=None, pdb=None):
 
     Parameters
     ----------
+    env : object
+        Modeller environment.
+
     seq_mut : object
         Instance of Seq class.
 
@@ -166,7 +175,8 @@ def gen_models(env, seq_mut=None, pdb=None):
     
     return mdl
 
-def gen_all_models(env, design=None, seq_prev=None, rp=None, rt=None, weights=[1. ,1.]):
+def gen_all_models(env, design=None, seq_prev=None, rp=None, rt=None, \
+        weights=[1. ,1.]):
     """ Generate mutated and competing models based on sequence
 
     Includes modelling the mutant for a given sequence and possible 
@@ -174,9 +184,11 @@ def gen_all_models(env, design=None, seq_prev=None, rp=None, rt=None, weights=[1
 
     Parameters
     ----------
-    env :
+    env : object
+        Modeller environment.
 
-    design:
+    design: object
+        Instance of the Design class.
 
     seq_prev : 
 
@@ -225,6 +237,7 @@ def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
     """
     # generate mutation
     seq_mut = mutator(seq_prev, rp, rt)
+    print seq_mut
 
     # generate model for mutant
     mdl = gen_models(env, seq_mut=seq_mut, pdb=design.name)
@@ -236,7 +249,12 @@ def gen_mutated_models(env, design=None, seq_prev=None, rp=None, rt=None):
     # calculate energy for whole mutant
     #mdl = mdlib.complete(env, file=mdl_tf.name)
     s = mdlib.get_selection(mdl)
-    ener = mdlib.get_energy(s)
+    print s
+    try:
+        ener = mdlib.get_energy(s)
+    except:
+        ener = 1e10
+    print ener
     #os.remove(mdl_tf.name)
     return seq_mut, ener 
 

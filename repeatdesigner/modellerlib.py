@@ -79,8 +79,7 @@ def get_automodel(env, aliin, mut, pdb):
     pdb
 
     """
-    a = modeller.automodel.automodel(env, alnfile=aliin, knowns=pdb, sequence=mut)
-    #assess_methods = (modeller.automodel.assess.DOPE)
+    a = modeller.automodel.automodel(env, alnfile=aliin, knowns=pdb, sequence=mut, assess_methods = modeller.automodel.assess.DOPE)
     a.make()
     return a
 
@@ -113,7 +112,8 @@ def get_selection(mdl, sel=None):
 
 def get_energy(selection):
     """
-    Calculates LJ and coulomb energy
+    Calculates DOPE score
+    TO DO: LJ and coulomb energy
 
     Parameters
     ----------
@@ -126,9 +126,11 @@ def get_energy(selection):
         Modeller energy value.
 
     """
-    energy = selection.energy(edat=modeller.energy_data(dynamic_sphere=True, \
-            dynamic_lennard=True, dynamic_coulomb=True, nonbonded_sel_atoms=2))
-    return energy[0]
+    #energy = selection.energy(edat=modeller.energy_data(dynamic_sphere=True, \
+    #        dynamic_lennard=True, dynamic_coulomb=True, \
+    #        nonbonded_sel_atoms=2))
+    #return energy[0]
+    return selection.assess_dope()
 
 def write_model(mdl, file=None):
     """

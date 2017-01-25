@@ -17,7 +17,6 @@ import Bio.SeqRecord
 
 import modellerlib as mdlib
 
-
 def model_mc_worker(mc_input):
     """
     Simple modelling worker function

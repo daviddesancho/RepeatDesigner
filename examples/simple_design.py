@@ -7,7 +7,6 @@
 # proteins are not required. We use a favourite protein as a toy model.
 
 import matplotlib.pyplot as plt
-#%matplotlib inline
 import seaborn as sns
 from repeatdesigner import designer as rd
 
@@ -22,7 +21,7 @@ villin_des = rd.Design(pdb="pdbs/1vii.pdb", targets=[27])
 # that will determine the acceptance, the length of the run (`len_mc`) and the number of 
 # runs (`nruns`, always think about your number of processors).
 
-mc_villin = rd.Optimizer(villin_des, beta=3e-2, len_mc=100, nruns=20)
+mc_villin = rd.Optimizer(villin_des, beta=1e-2, len_mc=100, nruns=50)
 mc_villin.run_mc()
 
 fig, ax = plt.subplots()
@@ -31,7 +30,6 @@ for k,v in mc_villin.models.iteritems():
 ax.set_ylabel('Energy', fontsize=14)
 ax.set_xlabel('MC steps', fontsize=14)
 plt.show()
-
 
 import Bio.PDB
 import Bio.Seq
@@ -48,7 +46,7 @@ print
 sequences = [Bio.SeqRecord.SeqRecord(x['seq']) for k,x in mc_villin.models.iteritems()] 
 align =  Bio.Align.MultipleSeqAlignment(sequences)
 summary_align = Bio.Align.AlignInfo.SummaryInfo(align)
-print " Consensus sequences:\n-------------------"
-print " WT:",villin_des.seq
-for t in [0.1, 0.2, 0.5, 0.9]:
-    print t, summary_align.dumb_consensus(threshold=(t))
+print " Consensus sequences:\n -------------------"
+print " WT ",villin_des.seq
+for t in [0.05, 0.1, 0.2, 0.5, 0.9]:
+    print "%.2f"%t, summary_align.dumb_consensus(threshold=(t))

@@ -46,7 +46,10 @@ class Design(object):
         print " .. target residues : ",self.targets
 
     def _pdb_name(self):
-        ie = self.pdb.rfind('.pdb')
+        if '.pdb' in self.pdb:
+            ie = self.pdb.rfind('.pdb')
+        elif '.ent' in self.pdb:
+            ie = self.pdb.rfind('.ent')
         return self.pdb[:ie]
 
     def _read_pdb(self):
@@ -63,7 +66,7 @@ class Design(object):
 
         """
         parser = Bio.PDB.PDBParser()
-        struc = parser.get_structure(self.name, self.pdb)
+        struc = parser.get_structure(self.name, self.pdb)[0]
         seq = Bio.Seq.Seq(''.join([Bio.SeqUtils.seq1(x.get_resname()) for x in \
                 struc.get_residues()]))
         return seq, struc

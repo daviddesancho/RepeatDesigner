@@ -299,7 +299,8 @@ def gen_interfaces(env, design=None, seq_mut=None, seq_prev=None, rp=None, rt=No
         mdl = gen_models(env, seq_mut=seq_comp, pdb=design.pdb)
         s0 = mdlib.get_selection(mdl, sel=mdl.residue_range(str(rep_prev[0]), str(rep_prev[1]+1)))
         s1 = mdlib.get_selection(mdl, sel=mdl.residue_range(str(rep_next[0]), str(rep_next[1]+1)))
-        s0s1 =mdlib.get_selection(mdl, sel=(mdl.residue_range(str(rep_prev[0]), str(rep_prev[1]+1)), mdl.residue_range(str(rep_next[0]), str(rep_next[1]+1)))) 
+        s0s1 =mdlib.get_selection(mdl, sel=(mdl.residue_range(str(rep_prev[0]), str(rep_prev[1]+1)), \
+                mdl.residue_range(str(rep_next[0]), str(rep_next[1]+1)))) 
         mdlib.get_energy(s0)
         mdlib.get_energy(s1)
         mdlib.get_energy(s0s1)
@@ -311,7 +312,7 @@ def gen_interfaces(env, design=None, seq_mut=None, seq_prev=None, rp=None, rt=No
 
 def mutator(seq, rp, rt):
     """
-Generates mutation in Seq space
+    Generates mutation in Seq space
 
     Parameters
     ----------

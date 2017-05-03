@@ -80,6 +80,13 @@ def get_automodel(env, aliin, mut, pdb):
 
     """
     a = modeller.automodel.automodel(env, alnfile=aliin, knowns=pdb, sequence=mut, assess_methods = modeller.automodel.assess.DOPE)
+
+    # Very thorough VTFM optimization:
+    a.library_schedule = modeller.automodel.autosched.slow
+    a.max_var_iterations = 300
+
+    # Thorough MD optimization:
+    a.md_level = modeller.automodel.refine.slow
     a.make()
     return a
 
